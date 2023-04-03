@@ -31,4 +31,15 @@
     android:layout_height="wrap_content"
     android:text="Talk to server" />
 
+    <Button
+        android:id="@+id/start_server_from_kotlin_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start server (kotlin)" />
+<Button
+    android:id="@+id/talk_to_server_from_kotlin_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Talk to server (kotlin)" />
+
 </LinearLayout>

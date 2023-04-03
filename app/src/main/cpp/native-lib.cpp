@@ -123,7 +123,9 @@ Java_com_example_socket_MainActivity_startServer1(JNIEnv *env, jobject /* this *
     // set the first byte to a null character to create a socket in the abstract namespace
     server_address.sun_path[0] = '\0';
     // set the socket name using the remaining bytes of sun_path
-    strcpy(&server_address.sun_path[1], "mysocket");
+//    strcpy(&server_address.sun_path[1], "mysocket");
+    strncpy(&server_address.sun_path[1], "mysocket", sizeof(server_address.sun_path) - 2);
+
 
 //    unlink("\0mysocket");
 
@@ -137,7 +139,15 @@ Java_com_example_socket_MainActivity_startServer1(JNIEnv *env, jobject /* this *
         return 1;
     }
 
-    __android_log_print(ANDROID_LOG_INFO, tag, "Server started listening...");
+    // Print the socket address after the socket is bound and listening
+    socklen_t address_length = sizeof(server_address);
+    if (getsockname(server_socket, (struct sockaddr *)&server_address, &address_length) == -1) {
+        __android_log_print(ANDROID_LOG_ERROR, tag, "Error getting socket address: %s", strerror(errno));
+        return 1;
+    }
+    char address_str[108]; // assuming a maximum address length of 108 bytes
+    snprintf(address_str, sizeof(address_str), "%s", &server_address.sun_path[1]); // copy the address string without the null character
+    __android_log_print(ANDROID_LOG_INFO, tag, "Server started listening on address: %s", address_str);
 
     while (server_running) {
         int client_socket = accept(server_socket, nullptr, nullptr);
@@ -147,7 +157,6 @@ Java_com_example_socket_MainActivity_startServer1(JNIEnv *env, jobject /* this *
             continue;
         }
 
-        std::cout << "Client connected." << std::endl;
         __android_log_print(ANDROID_LOG_INFO, tag, "Client connected.");
 
         char buf[256];
@@ -160,7 +169,6 @@ Java_com_example_socket_MainActivity_startServer1(JNIEnv *env, jobject /* this *
         }
 
         buf[n] = '\0'; // add null terminator to the received message
-        std::cout << "Received message from client: " << buf << std::endl;
         __android_log_print(ANDROID_LOG_INFO, tag, "Received message from client: %s", buf);
 
         const char* response = "Hello, client!";
@@ -198,7 +206,9 @@ Java_com_example_socket_MainActivity_talkToServer(JNIEnv *env, jobject /* this *
     memset(&server_address, 0, sizeof(server_address));
     server_address.sun_family = AF_UNIX;
     server_address.sun_path[0] = '\0';
-    strcpy(&server_address.sun_path[1], "mysocket");
+//    strcpy(&server_address.sun_path[1], "mysocket");
+    strncpy(&server_address.sun_path[1], "mysocket", sizeof(server_address.sun_path) - 2);
+
 
     if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) == -1) {
         __android_log_print(ANDROID_LOG_ERROR, tag, "Error connecting to socket: %s", strerror(errno));

@@ -22,6 +22,12 @@ android {
 //                arguments "-DANDROID_ABI=armeabi-v7a;x86", "-DANDROID_STL=c++_static"
 //                arguments "-DANDROID_ABI=armeabi-v7a;x86", "-DANDROID_STL=c++_shared"
 //                arguments "-DANDROID_ABI=armeabi-v7a;x86"
+
+//                $ cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+//    -DANDROID_ABI=armeabi-v7a \
+//    -DANDROID_NATIVE_API_LEVEL=21 \
+//    -DANDROID_TOOLCHAIN=clang \
+//    -DANDROID_STL=c++_static \
             }
         }
     }
