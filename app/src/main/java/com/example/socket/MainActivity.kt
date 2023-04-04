@@ -12,9 +12,12 @@ import com.example.socket.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.ServerSocket
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,31 +26,54 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val directory = File(filesDir, "mydir")
+        if (!directory.exists()) {
+            if (!directory.mkdirs()) {
+                Log.e(TAG, "Error creating directory")
+            }
+            Log.d(TAG, "Created directory: ${directory.absolutePath}")
+        }
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Example of a call to a native method
         binding.sampleText.text = stringFromJNI()
 
-        // Set click listeners for the Button views
-        binding.startServerButton.setOnClickListener {
-            startServerInternal()
+        binding.startAbstractServerButton.setOnClickListener {
+            startServerWithAbstractInternal()
+        }
+
+        binding.startFilesystemServerButton.setOnClickListener {
+            startServerWithFileSystemInternal()
         }
 
         binding.stopServerButton.setOnClickListener {
             stopServer()
         }
 
-        binding.talkToServerButton.setOnClickListener {
-            talkToServerInternal()
+        binding.talkToAbstractServerButton.setOnClickListener {
+            talkToAbstractSocketServerInternal()
         }
 
-        binding.startServerFromKotlinButton.setOnClickListener {
-            startServerFromKotlin()
+        binding.talkToFilesystemServerButton.setOnClickListener {
+            talkToFileSystemSocketServerInternal()
         }
 
-        binding.talkToServerFromKotlinButton.setOnClickListener {
-            talkToServerFromKotlin()
+        binding.startAbstractServerFromKotlinButton.setOnClickListener {
+            startAbstractSocketServerFromKotlin()
+        }
+
+        binding.talkToAbstractServerFromKotlinButton .setOnClickListener {
+            talkToAbstractSocketServerFromKotlin()
+        }
+
+        binding.startFilesystemServerFromKotlinButton.setOnClickListener {
+            startFileSystemSocketServerFromKotlin()
+        }
+
+        binding.talkToFilesystemServerFromKotlinButton .setOnClickListener {
+            talkToFileSystemSocketServerFromKotlin()
         }
     }
 
@@ -57,9 +83,11 @@ class MainActivity : AppCompatActivity() {
      */
     external fun stringFromJNI(): String
     external fun startServer(): Int
-    external fun startServer1(): Int
+    external fun startServerWithAbstract(): Int
+    external fun startServerWithFileSystem(): Int
     private external fun stopServer(): Int
-    private external fun talkToServer(): String
+    private external fun talkToAbstractSocketServer(): String
+    private external fun talkToFileSystemSocketServer(): String
 
     companion object {
         // Used to load the 'socket' library on application startup.
@@ -67,40 +95,46 @@ class MainActivity : AppCompatActivity() {
             System.loadLibrary("socket")
         }
 
-        private const val SOCKET_ADDRESS = "@mysocket"
+        private const val SOCKET_ABSTRACT_ADDRESS = "mysocket"
+        private const val SOCKET_FILESYSTEM_ADDRESS = "/data/user/0/com.example.socket/files/mydir/mysocket"
         private const val SOCKET_BUFFER_SIZE = 256
         private const val TAG = "MyNativeCode"
         private var serverRunning = false
     }
 
-    private fun startServerInternal() {
+    private fun startServerWithAbstractInternal() {
         GlobalScope.launch(Dispatchers.IO) {
             // Call the JNI function to start the server on a background thread
-            val result = startServer1()
-
-            // Switch back to the main thread to display a Toast message
-//            launch(Dispatchers.Main) {
-//                if (result == 0) {
-//                    Toast.makeText(this@MainActivity, "Server started", Toast.LENGTH_SHORT).show()
-//                } else {
-//                    Toast.makeText(this@MainActivity, "Failed to start server", Toast.LENGTH_SHORT).show()
-//                }
-//            }
+            val result = startServerWithAbstract()
         }
     }
 
-    private fun talkToServerInternal() {
+    private fun startServerWithFileSystemInternal() {
         GlobalScope.launch(Dispatchers.IO) {
             // Call the JNI function to start the server on a background thread
-            val result = talkToServer()
+            val result = startServerWithFileSystem()
         }
     }
 
-    private fun startServerFromKotlin() {
+    private fun talkToAbstractSocketServerInternal() {
+        GlobalScope.launch(Dispatchers.IO) {
+            // Call the JNI function to start the server on a background thread
+            val result = talkToAbstractSocketServer()
+        }
+    }
+
+    private fun talkToFileSystemSocketServerInternal() {
+        GlobalScope.launch(Dispatchers.IO) {
+            // Call the JNI function to start the server on a background thread
+            val result = talkToFileSystemSocketServer()
+        }
+    }
+
+    private fun startAbstractSocketServerFromKotlin() {
         GlobalScope.launch(Dispatchers.IO) {
             serverRunning = true
 
-            val serverSocket = LocalServerSocket(SOCKET_ADDRESS)
+            val serverSocket = LocalServerSocket(SOCKET_ABSTRACT_ADDRESS)
 
             // Print the socket address after the socket is bound and listening
             val addressStr = serverSocket.localSocketAddress?.name ?: ""
@@ -141,12 +175,56 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun talkToServerFromKotlin(): String {
+    private fun talkToAbstractSocketServerFromKotlin(): String {
         val socket = LocalSocket()
         try {
             // Connect to the server using a LocalSocket
             Log.d(TAG, "(kotlin) Connecting to socket...")
-            socket.connect(LocalSocketAddress(SOCKET_ADDRESS, LocalSocketAddress.Namespace.ABSTRACT))
+            socket.connect(LocalSocketAddress(SOCKET_ABSTRACT_ADDRESS, LocalSocketAddress.Namespace.ABSTRACT))
+            Log.d(TAG, "(kotlin) Connected to socket!")
+            val os = socket.outputStream
+            val `is` = socket.inputStream
+
+            // Send a message to the server
+            val message = "Hello from Kotlin!"
+            os.write(message.toByteArray(Charsets.UTF_8))
+            os.flush()
+
+            Log.d(TAG, "(kotlin) Sent message to server: $message")
+
+            // Receive a response from the server
+            val buffer = ByteArray(SOCKET_BUFFER_SIZE)
+            val n = `is`.read(buffer)
+            if (n == -1) {
+                throw IOException("Failed to read data from server")
+            }
+            val response = String(buffer, 0, n, Charsets.UTF_8)
+
+            Log.d(TAG, "(kotlin) Received message from server: $response")
+
+            // Close the socket and return the response
+            socket.close()
+            return response
+        } catch (e: Exception) {
+            Log.e(TAG, "(kotlin) Error talking to server: ${e.message}")
+            socket.close()
+            return ""
+        }
+    }
+
+    private fun startFileSystemSocketServerFromKotlin() {
+        GlobalScope.launch(Dispatchers.IO) {
+            serverRunning = true
+
+        }
+    }
+
+    private fun talkToFileSystemSocketServerFromKotlin(): String {
+        val socket = LocalSocket()
+        try {
+            // Connect to the server using a LocalSocket
+            Log.d(TAG, "(kotlin) Connecting to socket...")
+            socket.connect(LocalSocketAddress(SOCKET_FILESYSTEM_ADDRESS, LocalSocketAddress.Namespace.FILESYSTEM))
             Log.d(TAG, "(kotlin) Connected to socket!")
             val os = socket.outputStream
             val `is` = socket.inputStream

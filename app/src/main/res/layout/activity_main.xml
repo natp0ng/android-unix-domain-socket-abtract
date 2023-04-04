@@ -14,32 +14,57 @@
     android:text="Hello World!" />
 
 <Button
-    android:id="@+id/start_server_button"
+    android:id="@+id/start_abstract_server_button"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="Start server" />
+    android:text="Start (Abstract) Socket server (c++)" />
+
+<Button
+    android:id="@+id/start_filesystem_server_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Start (File System) Socket server (c++)" />
 
 <Button
     android:id="@+id/stop_server_button"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="Stop server" />
+    android:text="Stop Socket server (c++)" />
 
 <Button
-    android:id="@+id/talk_to_server_button"
+    android:id="@+id/talk_to_abstract_server_button"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="Talk to server" />
+    android:text="Talk to (Abstract) Socket server (c++)" />
 
-    <Button
-        android:id="@+id/start_server_from_kotlin_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Start server (kotlin)" />
 <Button
-    android:id="@+id/talk_to_server_from_kotlin_button"
+    android:id="@+id/talk_to_filesystem_server_button"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="Talk to server (kotlin)" />
+    android:text="Talk to (File System) Socket server (c++)" />
+
+<Button
+    android:id="@+id/start_abstract_server_from_kotlin_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Start Abstract Socket server (kotlin)" />
+
+<Button
+    android:id="@+id/talk_to_abstract_server_from_kotlin_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Talk to Abstract Socket server (kotlin)" />
+
+<Button
+    android:id="@+id/start_filesystem_server_from_kotlin_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Start FileSystem Socket server (kotlin)" />
+
+<Button
+    android:id="@+id/talk_to_filesystem_server_from_kotlin_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Talk to FileSystem Socket server (kotlin)" />
 
 </LinearLayout>
